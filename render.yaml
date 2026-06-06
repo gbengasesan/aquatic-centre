@@ -1,0 +1,35 @@
+# One-click deploy config for Render (https://render.com).
+# In Render: New > Blueprint > connect this repo.
+# NOTE: the persistent disk below (which permanently saves pledges) and an
+# always-on site require a paid instance. "starter" is Render's cheapest (~$7/mo).
+# For free TESTING only: change plan to "free" AND delete the whole "disk:" block
+# at the bottom — but on free, pledges reset whenever the site sleeps/redeploys.
+services:
+  - type: web
+    name: aquatic-centre
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false          # set your own value in the Render dashboard
+      - key: DB_PATH
+        value: /var/data/legacy.json
+      # Optional email notifications — fill in via the Render dashboard to enable:
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: NOTIFY_TO
+        sync: false
+      - key: NOTIFY_FROM
+        sync: false
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1

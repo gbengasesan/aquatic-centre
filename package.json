@@ -1,0 +1,17 @@
+{
+  "name": "aquatic-centre-legacy-thermometer",
+  "version": "1.1.0",
+  "description": "Greensprings Aquatic Centre Legacy Fund - fundraising thermometer with pledge form, QR code, email notifications, CSV export, and admin backend.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.14"
+  }
+}

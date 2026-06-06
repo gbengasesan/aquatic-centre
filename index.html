@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aquatic Centre — Legacy Thermometer</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    /* smooth animation for the SVG water level + markers */
+    #water { transition: y 1.3s cubic-bezier(.22,.85,.25,1), height 1.3s cubic-bezier(.22,.85,.25,1); }
+    #surface { transition: cy 1.3s cubic-bezier(.22,.85,.25,1); }
+    #fulfilledGroup, #pledgedFlag { transition: transform 1.3s cubic-bezier(.22,.85,.25,1); }
+    .tick-line { stroke: #b9c7bf; stroke-width: 1.4; }
+    .tick-major { stroke: #6b7d73; stroke-width: 1.8; }
+    .tick-label { fill: #4a5a51; font-size: 13px; font-weight: 600; font-family: inherit; }
+    .tick-amt { fill: #8a978f; font-size: 11px; font-family: inherit; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo"><img src="https://www.greenspringsschool.com/wp-content/uploads/2017/11/logo.png" alt="Greensprings School" /></span>
+      <div>
+        <h1 id="campaignName">Legacy Fund</h1>
+        <div class="sub">🏊 Building our Aquatic Centre &middot; live fundraising thermometer</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="dash-grid">
+      <!-- Thermometer -->
+      <div class="card thermo-card">
+        <div class="pct-big"><span id="pct">0</span>%</div>
+        <div class="muted" style="margin-top:-6px">of ₦ target pledged</div>
+
+        <svg id="thermo" viewBox="0 0 320 540" width="100%" style="max-width:340px;margin-top:8px" aria-label="Fundraising thermometer">
+          <defs>
+            <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"  stop-color="#7fd6f2"/>
+              <stop offset="55%" stop-color="#1ea7d8"/>
+              <stop offset="100%" stop-color="#0b6e9e"/>
+            </linearGradient>
+            <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"  stop-color="#ffffff"/>
+              <stop offset="22%" stop-color="#eef4f1"/>
+              <stop offset="50%" stop-color="#f7faf8"/>
+              <stop offset="100%" stop-color="#dde7e1"/>
+            </linearGradient>
+            <clipPath id="thermoClip">
+              <rect x="103" y="34" width="46" height="396" rx="23"/>
+              <circle cx="126" cy="468" r="48"/>
+            </clipPath>
+          </defs>
+
+          <!-- glass body -->
+          <g>
+            <rect x="103" y="34" width="46" height="396" rx="23" fill="url(#glassGrad)" stroke="#005028" stroke-width="4"/>
+            <circle cx="126" cy="468" r="48" fill="url(#glassGrad)" stroke="#005028" stroke-width="4"/>
+          </g>
+
+          <!-- water (clipped to tube + bulb) -->
+          <g clip-path="url(#thermoClip)">
+            <rect id="water" x="103" y="430" width="46" height="90" fill="url(#waterGrad)"/>
+            <circle id="surface" cx="126" cy="430" r="3" fill="#bff0ff" opacity="0.9"/>
+            <!-- bulb always full -->
+            <circle cx="126" cy="468" r="48" fill="url(#waterGrad)"/>
+            <!-- subtle shine -->
+            <rect x="110" y="40" width="8" height="384" rx="4" fill="#ffffff" opacity="0.45"/>
+          </g>
+
+          <!-- bulb label -->
+          <text x="126" y="473" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="800" font-family="inherit">GOAL</text>
+
+          <!-- scale ticks + labels (built by JS) -->
+          <g id="ticks"></g>
+
+          <!-- pledged flag (small marker on the left at water level) -->
+          <g id="pledgedFlag" transform="translate(0,430)">
+            <polygon points="60,0 96,0 96,-13 100,-7 96,0" fill="#0b6e9e"/>
+            <rect x="6" y="-13" width="56" height="26" rx="5" fill="#0b6e9e"/>
+            <text x="34" y="4" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="inherit">PLEDGED</text>
+          </g>
+
+          <!-- fulfilled marker (dashed line across the tube + flag on right) -->
+          <g id="fulfilledGroup" transform="translate(0,430)">
+            <line x1="96" y1="0" x2="156" y2="0" stroke="#005028" stroke-width="3" stroke-dasharray="5 4"/>
+            <rect x="156" y="-13" width="74" height="26" rx="5" fill="#005028"/>
+            <text x="193" y="4" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="inherit">FULFILLED</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Stats + QR -->
+      <div>
+        <div class="card">
+          <div class="stat target">
+            <div class="k">Target</div>
+            <div class="v" id="target">—</div>
+          </div>
+          <div class="stat pledged">
+            <div class="k">Pledged</div>
+            <div class="v" id="pledged">—</div>
+            <div class="hint"><span id="count">0</span> pledges received</div>
+          </div>
+          <div class="stat fulfilled">
+            <div class="k">Fulfilled</div>
+            <div class="v" id="fulfilled">—</div>
+            <div class="hint"><span id="fulfilledPct">0</span>% of pledges collected</div>
+          </div>
+        </div>
+
+        <div class="card qr-card" style="margin-top:24px">
+          <div class="scan">📱 Scan to make a pledge</div>
+          <div class="muted" style="font-size:.85rem;margin-bottom:12px">Point your phone camera here</div>
+          <div id="qrcode"></div>
+          <div style="margin-top:14px">
+            <a class="btn water" id="pledgeLink" href="/pledge">Open pledge form</a>
+            <a class="btn ghost" href="/admin">Admin</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- geometry of the scale (matches the SVG above) ----
+    const TOP = 34, BOTTOM = 430; // y at 100% and 0%
+    const yFor = (pct) => BOTTOM - Math.max(0, Math.min(100, pct)) * (BOTTOM - TOP) / 100;
+
+    const pledgeUrl = location.origin + '/pledge';
+    new QRCode(document.getElementById('qrcode'), {
+      text: pledgeUrl, width: 200, height: 200, colorDark: '#005028', colorLight: '#ffffff'
+    });
+    document.getElementById('pledgeLink').href = pledgeUrl;
+
+    const fmt = (cur, n) => cur + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    function compact(cur, n) {
+      if (n >= 1e9) return cur + (n / 1e9).toFixed(n % 1e9 ? 1 : 0) + 'B';
+      if (n >= 1e6) return cur + (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + 'M';
+      if (n >= 1e3) return cur + Math.round(n / 1e3) + 'K';
+      return cur + Math.round(n);
+    }
+
+    function buildTicks(target, cur) {
+      const g = document.getElementById('ticks');
+      g.innerHTML = '';
+      const SVGNS = 'http://www.w3.org/2000/svg';
+      for (let p = 0; p <= 100; p += 5) {
+        const y = yFor(p);
+        const major = p % 25 === 0;
+        const line = document.createElementNS(SVGNS, 'line');
+        line.setAttribute('x1', major ? 150 : 150);
+        line.setAttribute('x2', major ? 174 : 164);
+        line.setAttribute('y1', y); line.setAttribute('y2', y);
+        line.setAttribute('class', major ? 'tick-major' : 'tick-line');
+        g.appendChild(line);
+        if (major) {
+          const lbl = document.createElementNS(SVGNS, 'text');
+          lbl.setAttribute('x', 180); lbl.setAttribute('y', y - 2);
+          lbl.setAttribute('class', 'tick-label');
+          lbl.textContent = p + '%';
+          g.appendChild(lbl);
+          const amt = document.createElementNS(SVGNS, 'text');
+          amt.setAttribute('x', 180); amt.setAttribute('y', y + 12);
+          amt.setAttribute('class', 'tick-amt');
+          amt.textContent = compact(cur, target * p / 100);
+          g.appendChild(amt);
+        }
+      }
+    }
+
+    let lastTarget = null, lastCur = null;
+    async function refresh() {
+      try {
+        const s = await (await fetch('/api/stats')).json();
+        document.getElementById('campaignName').textContent = s.campaign_name;
+        document.title = s.campaign_name + ' — Legacy Thermometer';
+        document.getElementById('target').textContent = fmt(s.currency, s.target);
+        document.getElementById('pledged').textContent = fmt(s.currency, s.pledged);
+        document.getElementById('fulfilled').textContent = fmt(s.currency, s.fulfilled);
+        document.getElementById('count').textContent = s.pledge_count;
+
+        const pledgedPct = s.target > 0 ? Math.min(100, (s.pledged / s.target) * 100) : 0;
+        const fulfilledOfTarget = s.target > 0 ? Math.min(100, (s.fulfilled / s.target) * 100) : 0;
+        const fulfilledOfPledged = s.pledged > 0 ? (s.fulfilled / s.pledged) * 100 : 0;
+
+        document.getElementById('pct').textContent = Math.round(pledgedPct);
+        document.getElementById('fulfilledPct').textContent = Math.round(fulfilledOfPledged);
+
+        if (s.target !== lastTarget || s.currency !== lastCur) {
+          buildTicks(s.target, s.currency); lastTarget = s.target; lastCur = s.currency;
+        }
+
+        const wy = yFor(pledgedPct);
+        const water = document.getElementById('water');
+        water.setAttribute('y', wy);
+        water.setAttribute('height', 520 - wy);
+        document.getElementById('surface').setAttribute('cy', wy);
+        document.getElementById('pledgedFlag').setAttribute('transform', `translate(0,${wy})`);
+        document.getElementById('fulfilledGroup').setAttribute('transform', `translate(0,${yFor(fulfilledOfTarget)})`);
+      } catch (e) { /* ignore transient errors */ }
+    }
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>
