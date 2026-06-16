@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Legacy Thermometer</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo"><img src="/logo.svg" alt="Greensprings School" /></span>
+      <div>
+        <h1>Admin Backend</h1>
+        <div class="sub">Aquatic Centre Legacy Fund &middot; manage pledges &amp; record fulfilled amounts</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- Login -->
+    <div class="card" id="loginCard" style="max-width:420px;margin:0 auto">
+      <label for="pwd">Admin password</label>
+      <input id="pwd" type="password" placeholder="Enter admin password" />
+      <div class="hint">Set via the ADMIN_PASSWORD env var. Default during testing: <code>changeme</code></div>
+      <div style="margin-top:16px"><button class="btn" id="loginBtn" style="width:100%">Sign in</button></div>
+      <div class="hint center" style="margin-top:10px"><a href="/">← Back to thermometer</a></div>
+    </div>
+
+    <!-- Panel -->
+    <div id="panel" style="display:none">
+      <!-- Settings -->
+      <div class="card">
+        <h3 style="margin-top:0">Campaign settings</h3>
+        <div class="row">
+          <div>
+            <label for="cName">Campaign name</label>
+            <input id="cName" />
+          </div>
+          <div>
+            <label for="cCur">Currency symbol</label>
+            <input id="cCur" />
+          </div>
+          <div>
+            <label for="cTarget">Target amount</label>
+            <input id="cTarget" type="number" min="0" step="any" />
+          </div>
+        </div>
+        <div style="margin-top:16px"><button class="btn" id="saveSettings">Save settings</button></div>
+      </div>
+
+      <!-- Summary -->
+      <div class="card" style="margin-top:24px">
+        <div class="row center">
+          <div><div class="k muted">TARGET</div><div class="v" style="font-size:1.5rem;font-weight:800" id="sTarget">—</div></div>
+          <div><div class="k muted">PLEDGED</div><div class="v" style="font-size:1.5rem;font-weight:800;color:var(--gold)" id="sPledged">—</div></div>
+          <div><div class="k muted">FULFILLED</div><div class="v" style="font-size:1.5rem;font-weight:800;color:var(--green)" id="sFulfilled">—</div></div>
+        </div>
+      </div>
+
+      <!-- Pledges -->
+      <div class="card" style="margin-top:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <h3 style="margin:0">Pledges &amp; fulfillment</h3>
+          <button class="btn sm" id="exportCsv">⬇ Export CSV</button>
+        </div>
+        <p class="hint">Update the <strong>Fulfilled</strong> box for a row and click Save to record how much of that pledge has actually been collected.</p>
+        <div style="overflow-x:auto">
+          <table id="tbl">
+            <thead>
+              <tr>
+                <th>Donor</th><th>Contact</th><th>Child</th><th>Pledged</th>
+                <th>Fulfilled</th><th>Status</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div id="empty" class="muted center" style="padding:24px;display:none">No pledges yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let pwd = '';
+    let cur = '₦';
+    const $ = (id) => document.getElementById(id);
+
+    function toast(msg) {
+      const t = $('toast'); t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+    function fmt(n) { return cur + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 }); }
+
+    async function api(path, body) {
+      const res = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': pwd },
+        body: JSON.stringify(body || {})
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    async function load() {
+      const res = await fetch('/api/admin/pledges?password=' + encodeURIComponent(pwd));
+      if (!res.ok) throw new Error('Wrong password');
+      const data = await res.json();
+      cur = data.stats.currency;
+      $('sTarget').textContent = fmt(data.stats.target);
+      $('sPledged').textContent = fmt(data.stats.pledged);
+      $('sFulfilled').textContent = fmt(data.stats.fulfilled);
+      $('cName').value = data.stats.campaign_name;
+      $('cCur').value = data.stats.currency;
+      $('cTarget').value = data.stats.target;
+
+      const rows = $('rows'); rows.innerHTML = '';
+      $('empty').style.display = data.pledges.length ? 'none' : 'block';
+      for (const p of data.pledges) {
+        const status = p.fulfilled >= p.amount ? '<span class="pill full">Fulfilled</span>'
+          : p.fulfilled > 0 ? '<span class="pill part">Partial</span>'
+          : '<span class="pill none">Pending</span>';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${esc(p.name)}</strong>${p.note ? '<div class="hint">'+esc(p.note)+'</div>' : ''}</td>
+          <td>${esc(p.email)}<div class="hint">${esc(p.phone||'')}</div></td>
+          <td>${esc(p.child_name||'N/A')}</td>
+          <td>${fmt(p.amount)}</td>
+          <td><input type="number" min="0" step="any" value="${p.fulfilled}" style="width:120px" data-id="${p.id}" /></td>
+          <td>${status}</td>
+          <td>
+            <button class="btn sm" data-save="${p.id}">Save</button>
+            <button class="btn sm danger" data-del="${p.id}">✕</button>
+          </td>`;
+        rows.appendChild(tr);
+      }
+      rows.querySelectorAll('[data-save]').forEach(b => b.onclick = async () => {
+        const id = b.getAttribute('data-save');
+        const input = rows.querySelector(`input[data-id="${id}"]`);
+        try { await api(`/api/admin/pledges/${id}/fulfill`, { fulfilled: Number(input.value) }); toast('Fulfilled amount updated'); load(); }
+        catch (e) { toast(e.message); }
+      });
+      rows.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+        if (!confirm('Delete this pledge?')) return;
+        try { await api(`/api/admin/pledges/${b.getAttribute('data-del')}/delete`); toast('Pledge deleted'); load(); }
+        catch (e) { toast(e.message); }
+      });
+    }
+    function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+    $('loginBtn').onclick = async () => {
+      pwd = $('pwd').value;
+      try { await load(); $('loginCard').style.display = 'none'; $('panel').style.display = 'block'; }
+      catch (e) { toast('Sign in failed: ' + e.message); }
+    };
+    $('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
+
+    $('exportCsv').onclick = () => {
+      window.location = '/api/admin/pledges.csv?password=' + encodeURIComponent(pwd);
+    };
+
+    $('saveSettings').onclick = async () => {
+      try {
+        await api('/api/admin/settings', { campaign_name: $('cName').value, currency: $('cCur').value, target: $('cTarget').value });
+        toast('Settings saved'); load();
+      } catch (e) { toast(e.message); }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Make a Pledge</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo"><img src="/logo.svg" alt="Greensprings School" /></span>
+      <div>
+        <h1 id="campaignName">Make a Pledge</h1>
+        <div class="sub">🏊 Help us build the Greensprings Aquatic Centre. Thank you!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" style="max-width:560px">
+    <div class="card" id="formCard">
+      <form id="pledgeForm">
+        <label for="name">Full name *</label>
+        <input id="name" name="name" required autocomplete="name" />
+
+        <label for="email">Email address *</label>
+        <input id="email" name="email" type="email" required autocomplete="email" />
+
+        <label for="phone">Phone number</label>
+        <input id="phone" name="phone" type="tel" autocomplete="tel" />
+
+        <label for="child_name">Child's name</label>
+        <input id="child_name" name="child_name" placeholder="N/A if not a Greensprings parent" />
+        <div class="hint">Enter N/A if you are not a Greensprings parent.</div>
+
+        <label for="amount">Pledge amount (<span id="cur">₦</span>) *</label>
+        <input id="amount" name="amount" type="number" min="1" step="any" required inputmode="decimal" />
+
+        <label for="note">Message / dedication (optional)</label>
+        <textarea id="note" name="note" rows="2" placeholder="e.g. In honour of the Class of 2010"></textarea>
+
+        <div style="margin-top:20px">
+          <button class="btn water" type="submit" id="submitBtn" style="width:100%">Submit my pledge</button>
+        </div>
+        <div class="hint center" style="margin-top:12px"><a href="/">View the live thermometer</a></div>
+      </form>
+    </div>
+
+    <div class="card" id="thanks" style="display:none">
+      <div class="success-box center">
+        <h2 style="margin-top:0">🎉 Thank you, <span id="thanksName"></span>!</h2>
+        <p>Your pledge of <strong id="thanksAmt"></strong> has been recorded and added to the thermometer.</p>
+      </div>
+      <div class="center" style="margin-top:18px">
+        <a class="btn" href="/">See the live thermometer</a>
+        <button class="btn ghost" id="another">Make another pledge</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let currency = '₦';
+    fetch('/api/stats').then(r => r.json()).then(s => {
+      currency = s.currency;
+      document.getElementById('cur').textContent = currency;
+      document.getElementById('campaignName').textContent = s.campaign_name;
+    }).catch(()=>{});
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    const form = document.getElementById('pledgeForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.textContent = 'Submitting…';
+      const body = {
+        name: name.value, email: email.value, phone: phone.value,
+        child_name: child_name.value, amount: amount.value, note: note.value
+      };
+      try {
+        const res = await fetch('/api/pledges', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+        document.getElementById('thanksName').textContent = body.name.split(' ')[0];
+        document.getElementById('thanksAmt').textContent =
+          currency + Number(body.amount).toLocaleString(undefined, { maximumFractionDigits: 0 });
+        document.getElementById('formCard').style.display = 'none';
+        document.getElementById('thanks').style.display = 'block';
+        window.scrollTo(0, 0);
+      } catch (err) {
+        toast(err.message);
+        btn.disabled = false; btn.textContent = 'Submit my pledge';
+      }
+    });
+
+    document.getElementById('another').addEventListener('click', () => {
+      form.reset();
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitBtn').textContent = 'Submit my pledge';
+      document.getElementById('thanks').style.display = 'none';
+      document.getElementById('formCard').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
