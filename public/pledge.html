@@ -9,7 +9,7 @@
 <body>
   <div class="topbar">
     <div class="brand">
-      <span class="logo"><img src="/logo.svg" alt="Greensprings School" /></span>
+      <span class="logo"><img src="/logo.jpg" alt="Greensprings School" /></span>
       <div>
         <h1 id="campaignName">Make a Pledge</h1>
         <div class="sub">🏊 Help us build the Greensprings Aquatic Centre. Thank you!</div>
@@ -79,9 +79,10 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.textContent = 'Submitting…';
+      const val = (id) => document.getElementById(id).value;
       const body = {
-        name: name.value, email: email.value, phone: phone.value,
-        child_name: child_name.value, amount: amount.value, note: note.value
+        name: val('name'), email: val('email'), phone: val('phone'),
+        child_name: val('child_name'), amount: val('amount'), note: val('note')
       };
       try {
         const res = await fetch('/api/pledges', {
