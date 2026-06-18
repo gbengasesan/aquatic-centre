@@ -60,20 +60,20 @@
 
     <div class="card" id="formCard">
       <form id="pledgeForm">
-        <label for="name">Full name *</label>
+        <label for="name">Full Name / Company Name (for corporate sponsorships)*</label>
         <input id="name" name="name" required autocomplete="name" />
 
-        <label for="email">Email address *</label>
+        <label for="email">eMail Address *</label>
         <input id="email" name="email" type="email" required autocomplete="email" />
 
-        <label for="phone">Phone number *</label>
+        <label for="phone">Phone Number *</label>
         <input id="phone" name="phone" type="tel" required autocomplete="tel" />
 
-        <label for="child_name">Child's name</label>
+        <label for="child_name">Child(ren)'s Name(s)</label>
         <input id="child_name" name="child_name" placeholder="N/A if not a Greensprings parent" />
         <div class="hint">Enter N/A if you are not a Greensprings parent.</div>
 
-        <label for="amount">Pledge amount (<span id="cur">₦</span>) *</label>
+        <label for="amount">Pledge Amount (<span id="cur">₦</span>) *</label>
         <input id="amount" name="amount" type="number" min="1" step="any" required inputmode="decimal" />
         <div class="tier-badge" id="tierBadge"></div>
 
@@ -89,7 +89,7 @@
         <div class="hint">This helps the committee plan and follow up. Phase 1 closes 31 July 2026.</div>
 
         <label for="note">Legacy Message (optional)</label>
-        <textarea id="note" name="note" rows="2" placeholder="e.g. In honour of the Class of 2010"></textarea>
+        <textarea id="note" name="note" rows="2" placeholder="e.g. In honour of the Class of 2026"></textarea>
 
         <div style="margin-top:20px">
           <button class="btn water" type="submit" id="submitBtn" style="width:100%">Submit my pledge</button>
@@ -107,7 +107,7 @@
         <div class="line"><span class="k">Bank</span><span class="v">Union Bank</span></div>
         <div class="line"><span class="k">Account Number</span><span class="v"><span id="acct">0232212496</span> <button class="copy" id="copyAcct" type="button">Copy</button></span></div>
       </div>
-      <p class="hint">After paying, still submit the form above so we can record your pledge and tier. This is the only official account for the campaign.</p>
+      <p class="hint">Before or after paying, kindly submit the form above so we can record your pledge and tier.</p>
     </div>
 
     <div class="card" id="thanks" style="display:none">
