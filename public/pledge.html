@@ -33,7 +33,7 @@
 
   <div class="wrap" style="max-width:600px">
     <!-- Progress strip -->
-    <div class="card" style="margin-bottom:20px">
+    <div class="card" id="progressCard" style="margin-bottom:20px">
       <div class="mini"><span>Raised so far</span><span><b id="pPledged">—</b> of <b id="pTarget">—</b></span></div>
       <div class="bar"><div class="bar-fill" id="pBar"></div></div>
       <div class="mini">
@@ -47,7 +47,7 @@
     </div>
 
     <!-- Impact summary (edit this copy any time) -->
-    <div class="card" style="margin-bottom:20px">
+    <div class="card" id="impactCard" style="margin-bottom:20px">
       <h3 style="margin-top:0">Why this matters</h3>
       <img src="/aquatic-centre-design.png" alt="Architect's rendering of the Greensprings Aquatic Centre"
            style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;margin-bottom:6px" />
@@ -212,6 +212,8 @@
         document.getElementById('thanksName').textContent = body.name.split(' ')[0];
         document.getElementById('thanksAmt').textContent = fmt(body.amount);
         document.getElementById('thanksTier').textContent = tierFor(body.amount);
+        document.getElementById('progressCard').style.display = 'none';
+        document.getElementById('impactCard').style.display = 'none';
         document.getElementById('formCard').style.display = 'none';
         document.getElementById('bankCard').style.display = 'none';
         document.getElementById('thanks').style.display = 'block';
@@ -228,6 +230,8 @@
       document.getElementById('submitBtn').disabled = false;
       document.getElementById('submitBtn').textContent = 'Submit my pledge';
       document.getElementById('thanks').style.display = 'none';
+      document.getElementById('progressCard').style.display = 'block';
+      document.getElementById('impactCard').style.display = 'block';
       document.getElementById('bankCard').style.display = 'block';
       document.getElementById('formCard').style.display = 'block';
       loadStats();
