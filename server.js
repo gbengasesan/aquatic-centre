@@ -49,7 +49,9 @@ function notifyPledge(p) {
       <tr><td style="padding:4px 12px 4px 0;color:#667"><b>Phone</b></td><td>${esc(p.phone || '—')}</td></tr>
       <tr><td style="padding:4px 12px 4px 0;color:#667"><b>Child's name</b></td><td>${esc(p.child_name || 'N/A')}</td></tr>
       <tr><td style="padding:4px 12px 4px 0;color:#667"><b>Amount</b></td><td style="color:#0b6e9e;font-weight:bold">${money(p.amount)}</td></tr>
-      ${p.note ? `<tr><td style="padding:4px 12px 4px 0;color:#667"><b>Message</b></td><td>${esc(p.note)}</td></tr>` : ''}
+      <tr><td style="padding:4px 12px 4px 0;color:#667"><b>Tier</b></td><td>${esc(tierFor(p.amount))}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#667"><b>Fulfilment</b></td><td>${esc(p.timeline || '—')}</td></tr>
+      ${p.note ? `<tr><td style="padding:4px 12px 4px 0;color:#667"><b>Legacy message</b></td><td>${esc(p.note)}</td></tr>` : ''}
     </table>
     <p style="font-family:Arial,sans-serif;font-size:14px;margin-top:16px;color:#333">
       Running totals — Pledged: <b>${money(t.pledged)}</b> of <b>${money(t.target)}</b>
@@ -69,6 +71,16 @@ function esc(s) {
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
+// Donor recognition tier based on pledge amount (Naira).
+function tierFor(amount) {
+  const a = Number(amount) || 0;
+  if (a >= 100000000) return 'Title & Naming Sponsor';
+  if (a >= 10000000) return 'Platinum Partner';
+  if (a >= 5000000) return 'Gold Partner';
+  if (a > 1000000) return 'Silver Partner';
+  return 'Bronze Friend';
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -84,6 +96,8 @@ function stats() {
     pledged: t.pledged,
     fulfilled: t.fulfilled,
     pledge_count: t.count,
+    remaining: Math.max(0, target - t.pledged),
+    deadline: db.getSetting('deadline', null),
   };
 }
 
@@ -101,10 +115,10 @@ app.get('/api/stats', (req, res) => res.json(stats()));
 
 // Create a pledge (public pledge form posts here).
 app.post('/api/pledges', (req, res) => {
-  const { name, email, phone, child_name, amount, note } = req.body || {};
+  const { name, email, phone, child_name, amount, note, timeline } = req.body || {};
   const amt = Number(amount);
-  if (!name || !email || !amt || amt <= 0) {
-    return res.status(400).json({ error: 'Name, email and a positive pledge amount are required.' });
+  if (!name || !email || !phone || !amt || amt <= 0) {
+    return res.status(400).json({ error: 'Name, email, phone and a positive pledge amount are required.' });
   }
   const row = db.addPledge({
     name: String(name).trim(),
@@ -112,6 +126,7 @@ app.post('/api/pledges', (req, res) => {
     phone: phone ? String(phone).trim() : null,
     child_name: child_name ? String(child_name).trim() : 'N/A',
     amount: amt,
+    timeline: timeline ? String(timeline).trim() : null,
     note: note ? String(note).trim() : null,
   });
   notifyPledge(row); // fire-and-forget email
@@ -126,7 +141,7 @@ app.get('/api/admin/pledges', requireAdmin, (req, res) => {
 // Export all pledges as CSV (download). Auth via ?password= so it works as a link.
 app.get('/api/admin/pledges.csv', requireAdmin, (req, res) => {
   const rows = db.listPledges();
-  const headers = ['id', 'name', 'email', 'phone', 'child_name', 'amount', 'fulfilled', 'status', 'note', 'created_at'];
+  const headers = ['id', 'name', 'email', 'phone', 'child_name', 'amount', 'fulfilled', 'status', 'tier', 'timeline', 'note', 'created_at'];
   const cell = (v) => {
     const s = v == null ? '' : String(v);
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
@@ -135,7 +150,7 @@ app.get('/api/admin/pledges.csv', requireAdmin, (req, res) => {
   for (const p of rows) {
     const status = p.fulfilled >= p.amount ? 'Fulfilled' : p.fulfilled > 0 ? 'Partial' : 'Pending';
     lines.push([p.id, cell(p.name), cell(p.email), cell(p.phone), cell(p.child_name),
-      p.amount, p.fulfilled, status, cell(p.note), p.created_at].join(','));
+      p.amount, p.fulfilled, status, cell(tierFor(p.amount)), cell(p.timeline), cell(p.note), p.created_at].join(','));
   }
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="aquatic-centre-pledges-${new Date().toISOString().slice(0,10)}.csv"`);
@@ -160,10 +175,11 @@ app.post('/api/admin/pledges/:id/delete', requireAdmin, (req, res) => {
 
 // Update campaign settings (target, name, currency).
 app.post('/api/admin/settings', requireAdmin, (req, res) => {
-  const { target, campaign_name, currency } = req.body || {};
+  const { target, campaign_name, currency, deadline } = req.body || {};
   if (target !== undefined && !isNaN(Number(target))) db.setSetting('target', Number(target));
   if (campaign_name) db.setSetting('campaign_name', campaign_name);
   if (currency) db.setSetting('currency', currency);
+  if (deadline !== undefined) db.setSetting('deadline', deadline);
   res.json({ ok: true, stats: stats() });
 });
 
