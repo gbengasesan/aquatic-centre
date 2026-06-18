@@ -66,8 +66,8 @@
         <label for="email">Email address *</label>
         <input id="email" name="email" type="email" required autocomplete="email" />
 
-        <label for="phone">Phone number</label>
-        <input id="phone" name="phone" type="tel" autocomplete="tel" />
+        <label for="phone">Phone number *</label>
+        <input id="phone" name="phone" type="tel" required autocomplete="tel" />
 
         <label for="child_name">Child's name</label>
         <input id="child_name" name="child_name" placeholder="N/A if not a Greensprings parent" />
@@ -154,13 +154,13 @@
         document.getElementById('campaignName').textContent = s.campaign_name;
         document.getElementById('pPledged').textContent = fmt(s.pledged);
         document.getElementById('pTarget').textContent = fmt(s.target);
-        document.getElementById('pRemaining').textContent = fmt(s.remaining);
+        document.getElementById('pRemaining').textContent = fmt(s.remaining != null ? s.remaining : Math.max(0, (s.target||0) - (s.pledged||0)));
         document.getElementById('pCount').textContent = s.pledge_count;
         const pct = s.target > 0 ? Math.min(100, s.pledged / s.target * 100) : 0;
         document.getElementById('pPct').textContent = Math.round(pct);
         document.getElementById('pBar').style.width = pct + '%';
-        if (s.deadline) {
-          const d = new Date(s.deadline + 'T23:59:59');
+        if (true) {
+          const d = new Date((s.deadline || '2026-07-31') + 'T23:59:59');
           document.getElementById('pDeadline').textContent =
             d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
           const days = Math.ceil((d - new Date()) / 86400000);
