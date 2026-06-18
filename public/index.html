@@ -220,8 +220,8 @@
         document.getElementById('count').textContent = s.pledge_count;
         document.getElementById('remaining').textContent = fmt(s.currency, s.remaining != null ? s.remaining : Math.max(0, s.target - s.pledged));
 
-        if (s.deadline) {
-          const d = new Date(s.deadline + 'T23:59:59');
+        if (true) {
+          const d = new Date((s.deadline || '2026-07-31') + 'T23:59:59');
           document.getElementById('deadlineDate').textContent =
             d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
           const days = Math.ceil((d - new Date()) / 86400000);
