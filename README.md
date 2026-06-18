@@ -82,3 +82,21 @@ the ₦ symbol.
 1. Open `/admin`, sign in. The defaults are already set (Aquatic Centre name + ₦2bn target) — adjust if needed.
 2. Display `/` on a screen at your event — people scan the QR to pledge.
 3. As money comes in, open `/admin` and update the **Fulfilled** field for each pledge.
+
+## Logo
+
+The Greensprings logo lives at `public/logo.jpg` and is used in every page header.
+To use the exact official artwork instead of this bundled vector, just replace
+`public/logo.jpg` with your own file (keep the same name, or update the `src="/logo.jpg"`
+references in `public/index.html`, `public/pledge.html`, and `public/admin.html`).
+
+## v1.2 additions (parent-feedback round)
+
+- Pledge page now leads with a progress strip (raised / goal / % / families), an impact summary, and a Phase 1 deadline countdown.
+- New required **fulfilment timeline** on the pledge form (Immediately / 30 / 60 / 90 days / 6 months) — shown in admin, CSV, and email alerts.
+- **Donor recognition tiers** computed from the pledge amount (Bronze Friend, Silver/Gold/Platinum Partner, Title & Naming Sponsor), shown live as the donor types, on the dashboard legend, and in admin/CSV.
+- **Bank details** (UBA · GESL Projects Account · 0232212496) shown on the dashboard and pledge page for immediate giving, with a copy button and a thank-you-screen reminder.
+- Dashboard shows **Still needed** (remaining) and a **Phase 1 deadline** countdown. Deadline is editable in admin settings.
+- "Message / Dedication" renamed to **Legacy Message**.
+
+Not yet included (need decisions/assets): online payment gateway (Paystack/Flutterwave), architectural renderings, dedicated corporate-sponsorship section.

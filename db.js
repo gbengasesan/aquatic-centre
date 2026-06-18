@@ -11,6 +11,7 @@ const DEFAULTS = {
     campaign_name: 'Greensprings Aquatic Centre — Legacy Fund',
     currency: '₦', // Naira
     target: 2000000000, // ₦2 billion
+    deadline: '2026-07-31', // Phase 1 deadline (YYYY-MM-DD)
   },
   pledges: [],
   nextId: 1,
@@ -55,6 +56,7 @@ function addPledge(p) {
     child_name: p.child_name || 'N/A',
     amount: Number(p.amount),
     fulfilled: 0,
+    timeline: p.timeline || null,
     note: p.note || null,
     created_at: new Date().toISOString(),
   };
