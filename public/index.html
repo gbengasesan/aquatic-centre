@@ -94,6 +94,17 @@
 
       <!-- Stats + QR -->
       <div>
+        <div class="card" id="deadlineCard" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div>
+            <div class="k" style="font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Phase 1 deadline</div>
+            <div style="font-size:1.2rem;font-weight:800" id="deadlineDate">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:1.9rem;font-weight:800;color:var(--red)" id="daysLeft">—</div>
+            <div class="hint" style="margin-top:0">days left</div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="stat target">
             <div class="k">Target</div>
@@ -109,6 +120,11 @@
             <div class="v" id="fulfilled">—</div>
             <div class="hint"><span id="fulfilledPct">0</span>% of pledges collected</div>
           </div>
+          <div class="stat">
+            <div class="k">Still needed</div>
+            <div class="v" id="remaining" style="color:var(--green-dark)">—</div>
+            <div class="hint">to reach our goal</div>
+          </div>
         </div>
 
         <div class="card qr-card" style="margin-top:24px">
@@ -119,6 +135,27 @@
             <a class="btn water" id="pledgeLink" href="/pledge">Open pledge form</a>
             <a class="btn ghost" href="/admin">Admin</a>
           </div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+          <h3 style="margin:0 0 10px">Give now</h3>
+          <div style="background:#eef6f1;border:1px solid #cfe6da;border-radius:12px;padding:14px;font-size:.92rem">
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #cfe6da"><span class="muted">Account Name</span><b>GESL Projects Account</b></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #cfe6da"><span class="muted">Bank</span><b>Union Bank</b></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0"><span class="muted">Account Number</span><b>0232212496</b></div>
+          </div>
+          <div class="hint">The only official account for this campaign. Please still submit a pledge so we can record it.</div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+          <h3 style="margin:0 0 10px">Recognition tiers</h3>
+          <table style="font-size:.88rem">
+            <tr><td><span style="color:#a06a2c;font-weight:700">●</span> Bronze Friend</td><td style="text-align:right" class="muted">up to ₦1M</td></tr>
+            <tr><td><span style="color:#6b7d8a;font-weight:700">●</span> Silver Partner</td><td style="text-align:right" class="muted">₦1M – ₦5M</td></tr>
+            <tr><td><span style="color:#b8860b;font-weight:700">●</span> Gold Partner</td><td style="text-align:right" class="muted">₦5M – ₦10M</td></tr>
+            <tr><td><span style="color:#4b5563;font-weight:700">●</span> Platinum Partner</td><td style="text-align:right" class="muted">₦10M – ₦100M</td></tr>
+            <tr><td><span style="color:#0b6e9e;font-weight:700">●</span> Title &amp; Naming Sponsor</td><td style="text-align:right" class="muted">₦100M+</td></tr>
+          </table>
         </div>
       </div>
     </div>
@@ -181,6 +218,15 @@
         document.getElementById('pledged').textContent = fmt(s.currency, s.pledged);
         document.getElementById('fulfilled').textContent = fmt(s.currency, s.fulfilled);
         document.getElementById('count').textContent = s.pledge_count;
+        document.getElementById('remaining').textContent = fmt(s.currency, s.remaining != null ? s.remaining : Math.max(0, s.target - s.pledged));
+
+        if (s.deadline) {
+          const d = new Date(s.deadline + 'T23:59:59');
+          document.getElementById('deadlineDate').textContent =
+            d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+          const days = Math.ceil((d - new Date()) / 86400000);
+          document.getElementById('daysLeft').textContent = days > 0 ? days : 0;
+        }
 
         const pledgedPct = s.target > 0 ? Math.min(100, (s.pledged / s.target) * 100) : 0;
         const fulfilledOfTarget = s.target > 0 ? Math.min(100, (s.fulfilled / s.target) * 100) : 0;

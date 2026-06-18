@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Make a Pledge</title>
   <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .bar { height: 14px; background: #e6eef0; border-radius: 999px; overflow: hidden; margin: 8px 0 6px; }
+    .bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #4fc3e8, #0b7bb0); transition: width 1s ease; }
+    .mini { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); }
+    .mini b { color: var(--ink); }
+    .countdown { font-weight: 700; color: var(--red); }
+    .tier-badge { display:none; margin-top:6px; font-size:.85rem; font-weight:700; }
+    .bank { background:#eef6f1; border:1px solid #cfe6da; border-radius:12px; padding:16px; }
+    .bank .line { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px dashed #cfe6da; font-size:.95rem; }
+    .bank .line:last-child { border-bottom:none; }
+    .bank .k { color: var(--muted); }
+    .bank .v { font-weight:700; text-align:right; }
+    .copy { cursor:pointer; border:1px solid var(--green); background:#fff; color:var(--green); border-radius:8px; padding:3px 10px; font-size:.8rem; font-weight:600; }
+  </style>
 </head>
 <body>
   <div class="topbar">
@@ -17,7 +31,33 @@
     </div>
   </div>
 
-  <div class="wrap" style="max-width:560px">
+  <div class="wrap" style="max-width:600px">
+    <!-- Progress strip -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="mini"><span>Raised so far</span><span><b id="pPledged">—</b> of <b id="pTarget">—</b></span></div>
+      <div class="bar"><div class="bar-fill" id="pBar"></div></div>
+      <div class="mini">
+        <span><b id="pPct">0</b>% funded &middot; <b id="pCount">0</b> families</span>
+        <span><b id="pRemaining">—</b> to go</span>
+      </div>
+      <div class="mini" style="margin-top:8px">
+        <span>Phase 1 deadline: <b id="pDeadline">—</b></span>
+        <span class="countdown" id="pDays"></span>
+      </div>
+    </div>
+
+    <!-- Impact summary (edit this copy any time) -->
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="margin-top:0">Why this matters</h3>
+      <img src="/aquatic-centre-design.png" alt="Architect's rendering of the Greensprings Aquatic Centre"
+           style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;margin-bottom:6px" />
+      <div class="hint" style="margin-top:0;margin-bottom:12px">Architect's rendering of the proposed Aquatic Centre.</div>
+      <p style="margin:0;color:var(--ink)">Your pledge helps build a <strong>25m competition-standard Aquatic Centre</strong>
+      for Greensprings. It will be a facility for swimming lessons, galas, water safety training and sports development that will
+      serve our children and the wider community for generations. The facility will also host some learning spaces, offices and
+      event space. Every pledge moves us closer to making it real.</p>
+    </div>
+
     <div class="card" id="formCard">
       <form id="pledgeForm">
         <label for="name">Full name *</label>
@@ -35,8 +75,20 @@
 
         <label for="amount">Pledge amount (<span id="cur">₦</span>) *</label>
         <input id="amount" name="amount" type="number" min="1" step="any" required inputmode="decimal" />
+        <div class="tier-badge" id="tierBadge"></div>
 
-        <label for="note">Message / dedication (optional)</label>
+        <label for="timeline">When will you fulfil this pledge? *</label>
+        <select id="timeline" name="timeline" required>
+          <option value="" disabled selected>Choose a timeline…</option>
+          <option>Immediately</option>
+          <option>Within 30 days</option>
+          <option>Within 60 days</option>
+          <option>Within 90 days</option>
+          <option>Within 6 months</option>
+        </select>
+        <div class="hint">This helps the committee plan and follow up. Phase 1 closes 31 July 2026.</div>
+
+        <label for="note">Legacy Message (optional)</label>
         <textarea id="note" name="note" rows="2" placeholder="e.g. In honour of the Class of 2010"></textarea>
 
         <div style="margin-top:20px">
@@ -46,10 +98,29 @@
       </form>
     </div>
 
+    <!-- Pay now -->
+    <div class="card" id="bankCard" style="margin-top:20px">
+      <h3 style="margin-top:0">Please give now</h3>
+      <p class="hint" style="margin-top:0">You can transfer your gift straight to the official campaign account:</p>
+      <div class="bank">
+        <div class="line"><span class="k">Account Name</span><span class="v">GESL Projects Account</span></div>
+        <div class="line"><span class="k">Bank</span><span class="v">Union Bank</span></div>
+        <div class="line"><span class="k">Account Number</span><span class="v"><span id="acct">0232212496</span> <button class="copy" id="copyAcct" type="button">Copy</button></span></div>
+      </div>
+      <p class="hint">After paying, still submit the form above so we can record your pledge and tier. This is the only official account for the campaign.</p>
+    </div>
+
     <div class="card" id="thanks" style="display:none">
       <div class="success-box center">
         <h2 style="margin-top:0">🎉 Thank you, <span id="thanksName"></span>!</h2>
         <p>Your pledge of <strong id="thanksAmt"></strong> has been recorded and added to the thermometer.</p>
+        <p style="margin:6px 0 0">You're now a <strong id="thanksTier"></strong>. 🏅</p>
+      </div>
+      <div class="bank" style="margin-top:18px">
+        <p style="margin:0 0 8px;font-weight:700">To fulfil your pledge, transfer to:</p>
+        <div class="line"><span class="k">Account Name</span><span class="v">GESL Projects Account</span></div>
+        <div class="line"><span class="k">Bank</span><span class="v">Union Bank</span></div>
+        <div class="line"><span class="k">Account Number</span><span class="v">0232212496</span></div>
       </div>
       <div class="center" style="margin-top:18px">
         <a class="btn" href="/">See the live thermometer</a>
@@ -62,11 +133,58 @@
 
   <script>
     let currency = '₦';
-    fetch('/api/stats').then(r => r.json()).then(s => {
-      currency = s.currency;
-      document.getElementById('cur').textContent = currency;
-      document.getElementById('campaignName').textContent = s.campaign_name;
-    }).catch(()=>{});
+    const fmt = (n) => currency + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    function tierFor(a) {
+      a = Number(a) || 0;
+      if (a >= 100000000) return 'Title & Naming Sponsor';
+      if (a >= 10000000) return 'Platinum Partner';
+      if (a >= 5000000) return 'Gold Partner';
+      if (a > 1000000) return 'Silver Partner';
+      return 'Bronze Friend';
+    }
+    const tierColor = {
+      'Bronze Friend': '#a06a2c', 'Silver Partner': '#6b7d8a', 'Gold Partner': '#b8860b',
+      'Platinum Partner': '#4b5563', 'Title & Naming Sponsor': '#0b6e9e'
+    };
+
+    function loadStats() {
+      fetch('/api/stats').then(r => r.json()).then(s => {
+        currency = s.currency;
+        document.getElementById('cur').textContent = currency;
+        document.getElementById('campaignName').textContent = s.campaign_name;
+        document.getElementById('pPledged').textContent = fmt(s.pledged);
+        document.getElementById('pTarget').textContent = fmt(s.target);
+        document.getElementById('pRemaining').textContent = fmt(s.remaining);
+        document.getElementById('pCount').textContent = s.pledge_count;
+        const pct = s.target > 0 ? Math.min(100, s.pledged / s.target * 100) : 0;
+        document.getElementById('pPct').textContent = Math.round(pct);
+        document.getElementById('pBar').style.width = pct + '%';
+        if (s.deadline) {
+          const d = new Date(s.deadline + 'T23:59:59');
+          document.getElementById('pDeadline').textContent =
+            d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+          const days = Math.ceil((d - new Date()) / 86400000);
+          document.getElementById('pDays').textContent = days > 0 ? days + ' days left' : 'Closing soon';
+        }
+      }).catch(()=>{});
+    }
+    loadStats();
+
+    const amountEl = document.getElementById('amount');
+    const badge = document.getElementById('tierBadge');
+    amountEl.addEventListener('input', () => {
+      const a = Number(amountEl.value);
+      if (a > 0) {
+        const t = tierFor(a);
+        badge.style.display = 'block';
+        badge.style.color = tierColor[t] || '#0b6e9e';
+        badge.textContent = '🏅 This makes you a ' + t;
+      } else { badge.style.display = 'none'; }
+    });
+
+    document.getElementById('copyAcct').addEventListener('click', () => {
+      navigator.clipboard.writeText('0232212496').then(() => toast('Account number copied'));
+    });
 
     function toast(msg) {
       const t = document.getElementById('toast');
@@ -82,7 +200,8 @@
       const val = (id) => document.getElementById(id).value;
       const body = {
         name: val('name'), email: val('email'), phone: val('phone'),
-        child_name: val('child_name'), amount: val('amount'), note: val('note')
+        child_name: val('child_name'), amount: val('amount'),
+        timeline: val('timeline'), note: val('note')
       };
       try {
         const res = await fetch('/api/pledges', {
@@ -91,9 +210,10 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Something went wrong.');
         document.getElementById('thanksName').textContent = body.name.split(' ')[0];
-        document.getElementById('thanksAmt').textContent =
-          currency + Number(body.amount).toLocaleString(undefined, { maximumFractionDigits: 0 });
+        document.getElementById('thanksAmt').textContent = fmt(body.amount);
+        document.getElementById('thanksTier').textContent = tierFor(body.amount);
         document.getElementById('formCard').style.display = 'none';
+        document.getElementById('bankCard').style.display = 'none';
         document.getElementById('thanks').style.display = 'block';
         window.scrollTo(0, 0);
       } catch (err) {
@@ -104,10 +224,13 @@
 
     document.getElementById('another').addEventListener('click', () => {
       form.reset();
+      badge.style.display = 'none';
       document.getElementById('submitBtn').disabled = false;
       document.getElementById('submitBtn').textContent = 'Submit my pledge';
       document.getElementById('thanks').style.display = 'none';
+      document.getElementById('bankCard').style.display = 'block';
       document.getElementById('formCard').style.display = 'block';
+      loadStats();
     });
   </script>
 </body>

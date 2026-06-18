@@ -45,6 +45,10 @@
             <label for="cTarget">Target amount</label>
             <input id="cTarget" type="number" min="0" step="any" />
           </div>
+          <div>
+            <label for="cDeadline">Phase 1 deadline</label>
+            <input id="cDeadline" type="date" />
+          </div>
         </div>
         <div style="margin-top:16px"><button class="btn" id="saveSettings">Save settings</button></div>
       </div>
@@ -69,7 +73,7 @@
           <table id="tbl">
             <thead>
               <tr>
-                <th>Donor</th><th>Contact</th><th>Child</th><th>Pledged</th>
+                <th>Donor</th><th>Contact</th><th>Child</th><th>Pledged</th><th>Tier</th><th>Timeline</th>
                 <th>Fulfilled</th><th>Status</th><th></th>
               </tr>
             </thead>
@@ -116,6 +120,7 @@
       $('cName').value = data.stats.campaign_name;
       $('cCur').value = data.stats.currency;
       $('cTarget').value = data.stats.target;
+      if (data.stats.deadline) $('cDeadline').value = data.stats.deadline;
 
       const rows = $('rows'); rows.innerHTML = '';
       $('empty').style.display = data.pledges.length ? 'none' : 'block';
@@ -129,6 +134,8 @@
           <td>${esc(p.email)}<div class="hint">${esc(p.phone||'')}</div></td>
           <td>${esc(p.child_name||'N/A')}</td>
           <td>${fmt(p.amount)}</td>
+          <td><span class="hint">${esc(tierFor(p.amount))}</span></td>
+          <td><span class="hint">${esc(p.timeline||'—')}</span></td>
           <td><input type="number" min="0" step="any" value="${p.fulfilled}" style="width:120px" data-id="${p.id}" /></td>
           <td>${status}</td>
           <td>
@@ -149,7 +156,8 @@
         catch (e) { toast(e.message); }
       });
     }
-    function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+    function tierFor(a){ a=Number(a)||0; if(a>=100000000)return'Title & Naming Sponsor'; if(a>=10000000)return'Platinum Partner'; if(a>=5000000)return'Gold Partner'; if(a>1000000)return'Silver Partner'; return'Bronze Friend'; }
 
     $('loginBtn').onclick = async () => {
       pwd = $('pwd').value;
@@ -164,7 +172,7 @@
 
     $('saveSettings').onclick = async () => {
       try {
-        await api('/api/admin/settings', { campaign_name: $('cName').value, currency: $('cCur').value, target: $('cTarget').value });
+        await api('/api/admin/settings', { campaign_name: $('cName').value, currency: $('cCur').value, target: $('cTarget').value, deadline: $('cDeadline').value });
         toast('Settings saved'); load();
       } catch (e) { toast(e.message); }
     };
