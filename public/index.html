@@ -139,9 +139,9 @@
         <div class="card" style="margin-top:24px">
           <h3 style="margin:0 0 10px">Give now</h3>
           <div style="background:#eef6f1;border:1px solid #cfe6da;border-radius:12px;padding:14px;font-size:.92rem">
-            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #cfe6da"><span class="muted">Account Name</span><b>GESL Projects Account</b></div>
-            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #cfe6da"><span class="muted">Bank</span><b>Union Bank</b></div>
-            <div style="display:flex;justify-content:space-between;padding:4px 0;align-items:center"><span class="muted">Account Number</span><span><b>0232212496</b> <button id="copyAcctDash" type="button" style="cursor:pointer;border:1px solid var(--green);background:#fff;color:var(--green);border-radius:8px;padding:3px 10px;font-size:.8rem;font-weight:600;margin-left:6px">Copy</button></span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #cfe6da"><span class="muted">Account Name</span><b>Greensprings School (PTA)</b></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #cfe6da"><span class="muted">Bank</span><b>United Bank For Africa</b></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;align-items:center"><span class="muted">Account Number</span><span><b>1002197477</b> <button id="copyAcctDash" type="button" style="cursor:pointer;border:1px solid var(--green);background:#fff;color:var(--green);border-radius:8px;padding:3px 10px;font-size:.8rem;font-weight:600;margin-left:6px">Copy</button></span></div>
           </div>
           <div class="hint">Please still submit a pledge so we can record it.</div>
         </div>
@@ -249,7 +249,7 @@
     }
     const copyBtn = document.getElementById('copyAcctDash');
     if (copyBtn) copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText('0232212496').then(() => {
+      navigator.clipboard.writeText('1002197477').then(() => {
         const t = copyBtn.textContent; copyBtn.textContent = 'Copied'; setTimeout(() => copyBtn.textContent = t, 1500);
       });
     });
